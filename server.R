@@ -1,9 +1,10 @@
 
 server <- function(session, input, output){
-  
+  #dataStorage <- list(shiny::reactiveValues(
   dataStorage <- shiny::reactiveValues(
     frequencies_original = data.table::data.table(),
-    frequencies_filtered = data.table::data.table()
+    frequencies_filtered = data.table::data.table(),
+    abstracts = data.frame()
   )
   
   # observeEvent doesn;t need to be assigned to a variable - it starts a 'listening' function
@@ -11,13 +12,17 @@ server <- function(session, input, output){
   
   observeEvent(input$go, {
     # IF RUNNING runApp, comment the input = ... lines out! They are only for testing
-     #input = list(
-       #filter = c("medical", "numbers", "stopwords", "metabolomics"),
-       #searchTerm = "glucose",
-       #dateRange = c(2000, 2020),
-       #absFreq = 100,
-       #topWords=200
-       # )
+     # input = list(
+     # selected_word = "insulin",
+     # filter = c("medical", "numbers", "stopwords", "metabolomics"),
+     # searchTerm = "glucose",
+     # dateRange = c(2000, 2020),
+     # absFreq = 100,
+     # topWords=200
+     # )
+
+    # clicked="hypertension:15"
+     # selected_word_clean = gsub(pattern= ":\\d+",replacement = "",x = clicked)
     
     shiny::withProgress({ # progress bar
       abstracts = getAbstracts(searchTerms = input$searchTerm,
@@ -25,6 +30,7 @@ server <- function(session, input, output){
                                maxdate = input$dateRange[2],
                                retmax = input$absFreq)
       shiny::setProgress(0.5)
+      dataStorage$abstracts <- abstracts
       dataStorage$frequencies_original <- getWordFrequency(abstracts)
       dataStorage$frequencies_filtered <- dataStorage$frequencies_original
     }
@@ -63,11 +69,39 @@ server <- function(session, input, output){
       }
     })  
   })
-  if(interactive()){
+  
+  observe({
     print(input$selected_word)
-  }
-}
+    if(!is.null(input$selected_word)){
+      selected_word_clean = gsub(pattern= ":\\d+",replacement = "",isolate(input$selected_word))
+      abstracts <- dataStorage$abstracts
+      JustASelectedbstracts <- abstracts$abstract
+      MachedAbstracts = sapply(JustASelectedbstracts, function(x) grepl(pattern = selected_word_clean, x = x))
+      isWhere=which(MachedAbstracts)
+      # ==========================================
+      ShowAbstracts<-JustASelectedbstracts[isWhere]
+      
+      absTable = dataStorage$abstracts[isWhere,]
+      
+      ShowAbstractsandSummaries <- sapply(1:nrow(absTable), function(i){
+        row = absTable[i, ]
+        title = row$title#row[1]
+        pmid = row$DOI#row[4]
+        abstract = row[2]
+        paste0(title,"(",pmid,")","\n", 
+               abstract)
+      })
+      
+      ShowAbstractsandSummaries<-paste(ShowAbstractsandSummaries,
+                                       collapse = "\n\n")
+     # "Title: ..., PMID: ..."
+      ShowAbstractsandSummaries<-sapply(ShowAbstractsandSummaries,FUN = as.character,USE.NAMES = T)
+      # ==========================================
+      output$value <- renderText({ ShowAbstractsandSummaries })  
 
+    }
+  })
+}
 
 
 

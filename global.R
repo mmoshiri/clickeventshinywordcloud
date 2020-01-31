@@ -1,4 +1,4 @@
-setwd("C:/Users/A   S    U    S/Desktop/GitGub/maryam_shiny")
+setwd("C:/Users/A   S    U    S/Desktop/shiny/maryam_shiny/clickeventshinywordcloud")
 #getwd()
 library(rstudioapi)    
 #script_path = rstudioapi::getActiveDocumentContext()$path
@@ -12,7 +12,9 @@ library(dplyr)
 library(stringr)
 library(wordcloud2)
 library(data.table)
+
 filterList <- data.table::fread("filterList.csv")
+
 getAbstracts <- function(searchTerms, retmax=500, mindate=2000, maxdate=2019){
   searchTerms = strsplit(searchTerms, " ")[[1]]
   # ==== SEARCH A METABOLITE TERM =====

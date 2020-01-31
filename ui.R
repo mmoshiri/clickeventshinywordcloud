@@ -16,17 +16,16 @@
                      "Filter",
                      choices = c("medical","stopwords","metabolomics"), 
                      multiple = T),
-      useShinyjs(),#
-      shiny::actionButton("btn", "Click me"),#
-      shiny::p(id = "element", "Click me to change my text"),#
-      actionButton("go", "Go! :)"),
-      hr(),
+     actionButton("go", "Go! :)"),
+     hr(),
+     textOutput(outputId="caption")
     ), 
     mainPanel(
       verbatimTextOutput("absFreq"),
       verbatimTextOutput("filter"),
       verbatimTextOutput("dateRange"),
       wordcloud2Output(outputId = "cloud", height = "800px"),
+      verbatimTextOutput("value"),
       tags$script(HTML(
         "$(document).on('click', '#canvas', function() {",
         'word = document.getElementById("wcSpan").innerHTML;',
